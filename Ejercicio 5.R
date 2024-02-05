@@ -21,11 +21,10 @@ datos$px <- px
 
 
 #Se crea una función que obtiene n_p_30
+n_p_30 <- c(0)
 
 n_p_30_function <- function(px) {
 
-  n_p_30 <- c(0)
-  
   for (i in 1:length(px)) {
     resultado <-1
     for(j in 1: i){
@@ -38,7 +37,35 @@ n_p_30_function <- function(px) {
   return(n_p_30)
 }
 
-datos$n_p_30 <- n_p_30_function(px)
+n_p_30 <- n_p_30_function(px)
+
+datos$n_p_30 <- n_p_30 
 
 
+suma_asegurada_1 <- 10^6
+suma_asegurada_2 <- 2*10^6
 
+#se calculan los pagos esperados para cada año
+qx<- datos$qx
+pago_esperado <- c(0)
+pago_esperado[1] <- suma_asegurada_2*qx[1]
+
+#caso fallecimiento antes de los 60 años
+for (i in 2: 29 ) {
+    pago_esperado[i] <- suma_asegurada_2*n_p_30[i-1]*qx[i]
+}
+
+#caso sobrevive a los 60 años
+
+pago_esperado[30] <-suma_asegurada_1*n_p_30[30]
+
+#caso fallecimiento después de los 60 años
+
+for (i in 1: (length(px)-30)) {
+  pago_esperado[30+i] <- suma_asegurada_1*n_p_30[30+i-1]*qx[30+i]
+}
+
+datos$"Pago Esperado" <- pago_esperado
+ 
+ 
+     
