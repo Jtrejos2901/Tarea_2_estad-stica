@@ -11,14 +11,9 @@ f <- dnorm(X, 0.5, sqrt(0.5))
 
 valor_estimado_1 <- mean(f) #La integración por Montecarlo Converge lento
 
-plot(density(X))
-
-#Necesitamos densidad auxiliar que contenga a la densidad de la normal(0.5,0.5)
-
 #Se emplea como densidad auxiliar una exponencial truncada en 6 con lambda = 1
 
 A <- rexp(n)+6 #datos aleatorios con distribución exponencial truncada
-
 
 w <- dnorm(A, 0.5, sqrt(0.5)) / dexp(A-6)
 
