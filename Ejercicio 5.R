@@ -41,9 +41,11 @@ n_p_30 <- n_p_30_function(px)
 
 datos$n_p_30 <- n_p_30 
 
-
 suma_asegurada_1 <- 10^6
 suma_asegurada_2 <- 2*10^6
+
+
+#----- Método determinista-----------------------------------------------------|
 
 #se calculan los pagos esperados para cada año
 qx<- datos$qx
@@ -67,5 +69,42 @@ for (i in 1: (length(px)-30)) {
 
 datos$"Pago Esperado" <- pago_esperado
  
+
+hist(pago_esperado, breaks = 100, col = "blue", main = "Histograma de Pagos Esperados por Año",
+     xlab = "Pagos Esperados", ylab = "Frecuencia") 
  
-     
+
+#--------------------MCMC---------------------------------|   
+
+set.seed(2901)
+iteraciones=10^4
+n=length(px)
+result <-rep(0,iteraciones)
+pago <-rep(0,iteraciones)
+for(i in c(1:iteraciones)){
+  U<-runif(n)
+  t=1
+  cont=1
+  while(t==1){
+    if(i == 1){
+      print(U)
+    }
+    
+    if(U[cont]<px[cont]){cont<-cont+1
+    } else{t<-0}
+  }
+   año_fallecimiento <- cont-1
+   result[i] <- año_fallecimiento
+   
+   if(año_fallecimiento < 30) {
+     pago[i]<-suma_asegurada_2
+   } else {
+     pago[i] <- suma_asegurada_1
+   }
+}
+
+hist(pago, breaks = 100, col = "blue", main = "Histograma de Pagos Esperados por Año MCMC",
+     xlab = "Pagos Esperados", ylab = "Frecuencia") 
+
+plot(density(result))
+print(result)
