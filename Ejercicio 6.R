@@ -17,16 +17,27 @@ fZ <- function(x){return(fnormal(x,mu1,mu2,sigma1,sigma2))}
 # Valores para el rango de la gráfica
 x_values <- seq(0, 16, length.out = 1000)
 
+par(mfrow = c(1, 2))
+
 # Gráfico de la distribución de Z y las medias de X1 y X2
 plot(x_values, fZ(x_values), type = "l", col = "blue", lwd = 2, 
      xlab = "Z", ylab = "Densidad", main = "Distribución de Z = X1 - X2")
 
 # Líneas verticales para las medias de X1 y X2
-abline(v = c(4, 2), col = c("red", "green"), lty = c(2, 2), lwd = 2)
+abline(v = c(mu1, mu2), col = c("red", "green"), lty = c(2, 2), lwd = 2)
 
 # Etiquetas para las medias
-text(4, 0.20, "Media X1", pos = 1, col = "red")
-text(2, 0.10, "Media X2", pos = 1, col = "green")
+text(mu1, 0.20, "Media X1", pos = 1, col = "red")
+text(mu2, 0.10, "Media X2", pos = 1, col = "green")
+
+# Gráfico de la distribución en valor absoluto de Z y las medias de X1 y X2
+plot(x_values, abs(fZ(x_values)), type = "l", col = "blue", lwd = 2, xlab = "Z", 
+     ylab = "Densidad (Valor Absoluto)", main = "Distribución de Z = X1 - X2")
+
+abline(v = c(mu1, mu2), col = c("red", "green"), lty = c(2, 2), lwd = 2)
+
+text(mu1, 0.20, "Media X1", pos = 1, col = "red")
+text(mu2, 0.10, "Media X2", pos = 1, col = "green")
 
 #-------------------------------------------------------------------------------
 fpK <- function(x,y){ 
@@ -88,6 +99,34 @@ hist(mcmc, freq=FALSE, main="Distribución de muestra MCMC", xlab="x",
 abline(v=mu1,col='blue',lwd=3) 
 abline(v=mu2,col='red',lwd=3)
 
+hist(abs(mcmc), freq = FALSE, 
+     main = "Distribución de muestra MCMC (Valor Absoluto)", 
+     xlab = "x", ylab = "distribucion(x)", breaks = 200)
+abline(v=mu1,col='blue',lwd=3) 
+abline(v=mu2,col='red',lwd=3)
+
 #c.Estime la media de la distribución resultante de 𝑍.
 media <- mean(mcmc)
 media
+
+#d. Gráfique el Traceplot de muestra MCMC del algoritmo junto con las medias 
+#de 𝑋1,𝑋2,𝑍.
+options(scipen = 999)
+par(mfrow = c(1, 1))
+
+plot(mcmc,type="l",xlab="x",ylab ="y",main="Traceplot de muestra MCMC")
+abline(h=mu1,col='blue',lwd=3) 
+abline(h=mu2,col='red',lwd=3) 
+abline(h=media,col='violet',lwd=3)
+
+#e. El gráfico de Autocorrelación de la muestra MCMC del algoritmo.
+acf(mcmc,main="Autocorrelación de muestra MCMC")
+
+#f. El gráfico de la convergencia de la media de la muestra MCMC del algoritmo.
+m <- N-L 
+acumulado <- cumsum(mcmc)/(1:m) 
+plot(1:m,acumulado,col="blue",type="l",ylab="promedio",xlab="Iteraciones", 
+     main="Convergencia de la media de la muestra MCMC")
+
+#g. La tasa de aceptación del algoritmo.
+cat("Tasa de aceptación:", mean(MCMC[,"Salto"]),"\n")
