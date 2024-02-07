@@ -1,5 +1,5 @@
 ---
-title: "Untitled"
+title: "Tarea 2"
 output: pdf_document
 date: "2024-02-07"
 ---
@@ -8,22 +8,44 @@ date: "2024-02-07"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+```{r}
+fnormal <- function(x,mu1,mu2,sigma1, sigma2) { 
+  fx= exp(-((x-mu1)^2/(2*(sigma1)))) - exp(-((x-mu2)^2/(2*(sigma2)))) 
+  return(fx) 
+}
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+mu1 <- 4
+mu2 <- 2
+sigma1 <- 4
+sigma2 <- 1
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+fZ <- function(x){return(fnormal(x,mu1,mu2,sigma1,sigma2))} 
 ```
 
-## Including Plots
+```{r}
+# Valores para el rango de la gráfica
+x_values <- seq(0, 16, length.out = 1000)
 
-You can also embed plots, for example:
+par(mfrow = c(1, 2))
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+# Gráfico de la distribución de Z y las medias de X1 y X2
+plot(x_values, fZ(x_values), type = "l", col = "blue", lwd = 2, 
+     xlab = "Z", ylab = "Densidad", main = "Distribución de Z = X1 - X2")
+
+# Líneas verticales para las medias de X1 y X2
+abline(v = c(mu1, mu2), col = c("red", "green"), lty = c(2, 2), lwd = 2)
+
+# Etiquetas para las medias
+text(mu1, 0.20, "Media X1", pos = 1, col = "red")
+text(mu2, 0.10, "Media X2", pos = 1, col = "green")
+
+# Gráfico de la distribución en valor absoluto de Z y las medias de X1 y X2
+plot(x_values, abs(fZ(x_values)), type = "l", col = "blue", lwd = 2, xlab = "Z", 
+     ylab = "Densidad (Valor Absoluto)", main = "Distribución de Z = X1 - X2")
+
+abline(v = c(mu1, mu2), col = c("red", "green"), lty = c(2, 2), lwd = 2)
+
+text(mu1, 0.20, "Media X1", pos = 1, col = "red")
+text(mu2, 0.10, "Media X2", pos = 1, col = "green")
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
