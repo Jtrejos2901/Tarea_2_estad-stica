@@ -1,6 +1,7 @@
 #-----------------------Ejercicio 5---------------------------------------------
 library(readxl)
 library(dplyr)
+library(ggplot2)
 
 tabla_vida <- read_excel("tavid2000-2150.xls",
                          col_types = c("numeric", "numeric", "numeric", 
@@ -9,7 +10,7 @@ tabla_vida <- read_excel("tavid2000-2150.xls",
 #Se filtra la base de datos para obtener los datos de un hombre nacido en 1994 
 #con edades mayor o igual a 30
 
-datos <- subset(tabla_vida, sex == 1 & ynac == 1994 & edad >=30, select = c(edad,qx))
+datos <- subset(tabla_vida, sex == 1 & ynac == 1994 & edad >=30, select = c(edad,qx, year))
 
 #Se crea una función que obtiene las probabilidades de sobrevivencia
 
@@ -68,8 +69,10 @@ for (i in 1: (length(px)-30)) {
 datos$"Pago Esperado" <- pago_esperado
  
 
-hist(pago_esperado, breaks = 50, col = "blue", main = "Histograma de Pagos Esperados por Año",
-     xlab = "Pagos Esperados", ylab = "Frecuencia") 
+ggplot(data = datos, aes(x = year, y = `Pago Esperado`)) +  
+  geom_bar(stat = "identity", fill = "blue") +  
+  labs(title = "Histograma de Pagos por año", x = "Años", y = "Frecuencia")+
+  theme_minimal()
  
 
 #--------------------MCMC---------------------------------|   
@@ -78,26 +81,42 @@ hist(pago_esperado, breaks = 50, col = "blue", main = "Histograma de Pagos Esper
 set.seed(2901)
 iteraciones=10^4
 n=length(px)
-pago <-rep(0,iteraciones)
-for(i in c(1:iteraciones)){
-  U<-runif(n) #se toman como probabilidades de muerte
-  t=1
-  cont=1
-  while(t==1){
-    if(U[cont]<px[cont]){cont<-cont+1
-    } else{t<-0}
-  }
-   año_fallecimiento <- cont-1
+pago <- rep(0, 86)
+
+for (i in 1:iteraciones) {
+  U <- runif(n)  # Se toman como probabilidades de muerte
+  t <- 1
+  cont <- 1
   
-   if(año_fallecimiento < 30) {
-     pago[i]<-suma_asegurada_2
-   } else {
-     pago[i] <- suma_asegurada_1
-   }
+  # Determinación del año de fallecimiento
+  while (t == 1) {
+    if (U[cont] < px[cont]) {
+      cont <- cont + 1
+    } else {
+      t <- 0
+    }
+  }
+  año_fallecimiento <- cont - 1
+  
+  # Asignar los pagos correspondientes al año de fallecimiento
+  if (año_fallecimiento < 30) {
+    pago[año_fallecimiento + 1] <- pago[año_fallecimiento + 1] + suma_asegurada_2 # Suma asegurada para el año de fallecimiento
+  } else if (año_fallecimiento ==30) {
+    pago[31] <- pago[31]+ suma_asegurada_1
+  }else {
+    pago[31] <- pago[31] + suma_asegurada_1 # Suma asegurada para el año 30
+    pago[año_fallecimiento + 1] <- pago[año_fallecimiento + 1] + suma_asegurada_1 # Suma asegurada para el año de fallecimiento
+  }
 }
 
-hist(pago, breaks = 50, col = "blue", main = "Histrograma de Pagos Esperados por Año",
-     xlab = "Pago Esperado (colones)", ylab = "Frecuencia")
+años <- datos$year
+resultado<- data.frame("Años pago"= años, "Pago" = pago)
+
+
+ggplot(data = resultado, aes(x = Años.pago, y = Pago)) +  
+  geom_bar(stat = "identity", fill = "blue") +  
+  labs(title = "Histograma de Pagos Esperados por año", x = "Años", y = "Frecuencia")+
+  theme_minimal()
 
 
 #Los pagos esperados mediante el método determinista y el MCMC muestran distribuciones
