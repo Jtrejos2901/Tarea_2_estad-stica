@@ -15,11 +15,11 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+Primeramente, se cargan las librerías necesarias.
+
 ```{r, message=FALSE}
-#Se cargan las librerías necesarias
 library(tidyverse)
 library(readxl)
-library(kableExtra)
 ```
 
 
@@ -48,7 +48,6 @@ valor_real <- pnorm(-5, 0.5, sqrt(0.5))
 
 comparacion <- data.frame("Estimación" = valor_estimado_1, "Valor real" = valor_real)
 
-#kbl(comparacion)
 print(comparacion)
 ```
 
@@ -68,7 +67,6 @@ valor_estimado <- mean(w)
 
 resumen <- data.frame("Estimación" = valor_estimado, "Valor real" = valor_real)
 
-#kbl(resumen)
 print(resumen)
 ```
 
@@ -82,7 +80,7 @@ El error absoluto de la estimación es:
 error_absoluto <- abs(valor_estimado-valor_real)
 ```
 
-#Ejercicio 5
+# Ejercicio 5
 
 **Una aseguradora tiene un producto llamado Doble Seguro de Vida (DSV) el cual paga 2 veces la suma asegurada si la persona fallece antes de los 60 años, paga 1 suma asegurada cuando la persona cumple los 60 años (si no ha fallecido) y paga 1 suma asegurada si fallece después de los 60 años. Considerando:**
 
