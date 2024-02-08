@@ -5,8 +5,7 @@ library(ggplot2)
 
 #Se carga la base de datos
 tabla_vida <- read_excel("tavid2000-2150.xls",
-                         col_types = c("numeric", "numeric", "numeric", 
-                                       "numeric", "numeric", "numeric", "numeric"))
+                         col_types = "numeric")
 
 #Se filtra la base de datos para obtener los datos de un hombre nacido en 1994 
 #con edades mayor o igual a 30
