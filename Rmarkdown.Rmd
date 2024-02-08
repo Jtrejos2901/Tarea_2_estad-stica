@@ -6,33 +6,34 @@ author:
   - "Tábata Picado Carmona C05961"
   - "Jose Pablo Trejos Conejo C07862"
   
-output: pdf_document
+output:
+  pdf_document:
+    latex_engine: xelatex
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r}
+```{r, message=FALSE}
 #Se cargan las librerías necesarias
+library(tidyverse)
 library(readxl)
-library(dplyr)
-library(ggplot2)
+library(kableExtra)
 ```
 
 
 # Ejercicio 2
 
-**Usando la metodología de Muestreo por Importancia, Si 𝑋\~𝑁(0.5,0.5) estime:**
+**Usando la metodología de Muestreo por Importancia, Si X\~N(0.5,0.5) estime:**
 
 ## a. P(X\<-5)
 
-Mediante el metódo de integración por Montecarlo se obtiene el siguiente resultado:
+Primeramenre, mediante el metódo de integración por Montecarlo se obtiene el siguiente resultado:
 
-```{r}
-#----------------------------Ejercicio 2---------------------------------------
+```{r, warning=FALSE}
 
-#---Estimación de función de distribución mediante Muestreo por Importancia----
+#--Estimación de función de distribución mediante integración por Montecarlo--
 
 set.seed(2901)
 n <- 10^4 #tamaño de la muestra
@@ -45,16 +46,20 @@ valor_estimado_1 <- mean(f)
 
 valor_real <- pnorm(-5, 0.5, sqrt(0.5))
 
-comparación <- data.frame("Estimación" = valor_estimado_1, "Valor real" = valor_real)
+comparacion <- data.frame("Estimación" = valor_estimado_1, "Valor real" = valor_real)
 
-print(comparación)
+#kbl(comparacion)
+print(comparacion)
 ```
 
 Como se puede observar, la estimación resultante converge lento al valor real. Por lo tanto, mediante Muestreo por Importancia se puede acelelar la convergencia empleando una densidad auxiliar. Para este caso, la densidad auxiliar a utilizar es una exponencial truncada de la forma $\lambda e^{-\lambda(x-t)}$, con x\>t.
 
 La probabilidad a estimar es equivalente a P(X\>6). Nos basaremos en esta para aproximarla mediante el Muestro por Importancia por medio de una exponencial truncada en 6 con $\lambda = 1$. El procedimiento se muestra en el siguiente algoritmo:
 
-```{r}
+```{r, warning=FALSE}
+
+#--Estimación de función de distribución mediante Muestreo por Importancia--
+
 A <- rexp(n)+6 #datos aleatorios mayores a 6 con distribución exponencial
 
 w <- dnorm(A, 0.5, sqrt(0.5)) / dexp(A-6)
@@ -63,8 +68,8 @@ valor_estimado <- mean(w)
 
 resumen <- data.frame("Estimación" = valor_estimado, "Valor real" = valor_real)
 
+#kbl(resumen)
 print(resumen)
-
 ```
 
 De tal manera, se obtiene una mejor aproximación de la probabilidad P(X\<-5), pues, es muy similar al valor real.
@@ -73,7 +78,7 @@ De tal manera, se obtiene una mejor aproximación de la probabilidad P(X\<-5), p
 
 El error absoluto de la estimación es:
 
-```{r}
+```{r, warning=FALSE}
 error_absoluto <- abs(valor_estimado-valor_real)
 ```
 
@@ -87,27 +92,38 @@ error_absoluto <- abs(valor_estimado-valor_real)
 
 **Construya con la ayuda de un MCMC la distribución de los pagos por año de que se espera de este seguro. Use al menos 10 000 iteraciones. Y muestre Histograma.**
 
-La construcción de la distribución de los pagos por año mediante MCMC se muestran en el siguiente código:
+Primeramente, se carga la tabla de vida dinámica de la SUPEN y se filtra para 
+obtener los datos correspondientes para un hombre que en el presente año (2024)
+tiene 30 años
 
-```{r}
+```{r, warning=FALSE}
 #Se carga la base de datos
 tabla_vida <- read_excel("tavid2000-2150.xls",
-                         col_types = c("numeric", "numeric", "numeric", 
-                         "numeric", "numeric", "numeric", "numeric"))
+                         col_types = "numeric")
 
 #Se filtra la base de datos para obtener los datos de un hombre nacido en 1994 
 #con edades mayor o igual a 30
 
 datos <- subset(tabla_vida, sex == 1 & ynac == 1994 & edad >=30, select = c(edad,qx, year))
 
+```
+
+Además, se calculan las probabilidades de sobrevivencia necesarias para procesos
+posteriores
+
+```{r, warning=FALSE}
 #Se obtienen las probabilidades de sobrevivencia
 
 px <- 1- datos$qx
 
 #Se añaden las probabilidades de sobrevivencia a la base datos
 datos$px <- px
+```
 
-qx<- datos$qx
+La construcción de la distribución de los pagos por año mediante MCMC se muestran en el siguiente código:
+
+```{r, warning=FALSE}
+
 suma_asegurada_1 <- 10^6
 suma_asegurada_2 <- 2*10^6
 
@@ -151,7 +167,7 @@ resultado <- data.frame("Años pago"= datos$year, "Pago" = pago)
 
 El histograma de los pagos esperados por año es el siguiente:
 
-```{r}
+```{r, warning=FALSE}
 ggplot(data = resultado, aes(x = Años.pago, y = Pago)) +  
   geom_bar(stat = "identity", fill = "blue") +  
   labs(title = "Histograma de Pagos Esperados por año", x = "Años", y = "Frecuencia")+
@@ -164,8 +180,32 @@ después de los 60, lo que indica que es más probable que el cliente fallezca d
 Se puede verificar el resultado obtenido por MCMC si lo comparamos con un histograma 
 obtenido mediante un método determinista como el que se muestra a continuación:
 
-```{r}
+```{r, warning=FALSE}
 #----- Método determinista-----------------------------------------------------|
+
+qx<- datos$qx
+
+#Se crea una función que obtiene n_p_30 (probabilidad de sobrevivencia acumulada)
+n_p_30 <- c(0)
+
+n_p_30_function <- function(px) {
+
+  for (i in 1:length(px)) {
+    resultado <-1
+    for(j in 1: i){
+      resultado <- resultado*px[j]
+    }
+    
+    n_p_30[i] <- resultado
+  }
+  
+  return(n_p_30)
+}
+
+n_p_30 <- n_p_30_function(px)
+
+datos$n_p_30 <- n_p_30 
+
 
 #se calculan los pagos esperados para cada año
 pago_esperado <- c(0)
@@ -196,45 +236,3 @@ ggplot(data = resultado_determinista, aes(x = Años.pago, y = Pago)) +
 ```
 
 Como se puede observar, los pagos esperados mediante el método determinista y el MCMC muestran distribuciones muy similares. Por tanto, se verifica que el resultado que se obtuvo por el método MCMC es aceptable.
-
-
-```{r}
-fnormal <- function(x,mu1,mu2,sigma1, sigma2) { 
-  fx= exp(-((x-mu1)^2/(2*(sigma1)))) - exp(-((x-mu2)^2/(2*(sigma2)))) 
-  return(fx) 
-}
-
-mu1 <- 4
-mu2 <- 2
-sigma1 <- 4
-sigma2 <- 1
-
-fZ <- function(x){return(fnormal(x,mu1,mu2,sigma1,sigma2))} 
-```
-
-```{r}
-# Valores para el rango de la gráfica
-x_values <- seq(0, 16, length.out = 1000)
-
-par(mfrow = c(1, 2))
-
-# Gráfico de la distribución de Z y las medias de X1 y X2
-plot(x_values, fZ(x_values), type = "l", col = "blue", lwd = 2, 
-     xlab = "Z", ylab = "Densidad", main = "Distribución de Z = X1 - X2")
-
-# Líneas verticales para las medias de X1 y X2
-abline(v = c(mu1, mu2), col = c("red", "green"), lty = c(2, 2), lwd = 2)
-
-# Etiquetas para las medias
-text(mu1, 0.20, "Media X1", pos = 1, col = "red")
-text(mu2, 0.10, "Media X2", pos = 1, col = "green")
-
-# Gráfico de la distribución en valor absoluto de Z y las medias de X1 y X2
-plot(x_values, abs(fZ(x_values)), type = "l", col = "blue", lwd = 2, xlab = "Z", 
-     ylab = "Densidad (Valor Absoluto)", main = "Distribución de Z = X1 - X2")
-
-abline(v = c(mu1, mu2), col = c("red", "green"), lty = c(2, 2), lwd = 2)
-
-text(mu1, 0.20, "Media X1", pos = 1, col = "red")
-text(mu2, 0.10, "Media X2", pos = 1, col = "green")
-```
