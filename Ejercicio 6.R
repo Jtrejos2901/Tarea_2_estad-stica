@@ -2,8 +2,23 @@
 #donde 𝑋1~𝑁(𝜇,𝜎2) y 𝑋2~𝑁(𝜇/2,𝜎2/4), considere para este ejercicio 
 #𝜇=𝜎2=4.
 
+#Opción 1
 fnormal <- function(x,mu1,mu2,sigma1, sigma2) { 
-  fx= exp(-((x-mu1)^2/(2*(sigma1)))) - exp(-((x-mu2)^2/(2*(sigma2)))) 
+  fx <- exp(-((x-mu1)^2/(2*(sigma1)))) - exp(-((x-mu2)^2/(2*(sigma2)))) 
+  return(fx) 
+}
+
+#Opción 2
+fnormal <- function(x,mu1,mu2,sigma1, sigma2) { 
+  X1 <- dnorm(x, mean = mu1, sd = sigma1)
+  X2 <- dnorm(x, mean = mu2, sd = sigma2)
+  fx <- X1 - X2
+  return(fx) 
+}
+
+#Opción 3
+fnormal <- function(x,mu1,mu2,sigma1, sigma2) { 
+  fx <- dnorm(x, mean = mu1-mu2, sd = sigma1+sigma2)
   return(fx) 
 }
 
@@ -20,24 +35,24 @@ x_values <- seq(0, 16, length.out = 1000)
 par(mfrow = c(1, 2))
 
 # Gráfico de la distribución de Z y las medias de X1 y X2
-plot(x_values, fZ(x_values), type = "l", col = "blue", lwd = 2, 
+plot(x_values, fZ(x_values), type = "l", col = "#ADD8E6", lwd = 2, 
      xlab = "Z", ylab = "Densidad", main = "Distribución de Z = X1 - X2")
 
 # Líneas verticales para las medias de X1 y X2
-abline(v = c(mu1, mu2), col = c("red", "green"), lty = c(2, 2), lwd = 2)
+abline(v = c(mu1, mu2), col = c("#FFB6C1", "#98FB98"), lty = c(2, 2), lwd = 2)
 
 # Etiquetas para las medias
-text(mu1, 0.20, "Media X1", pos = 1, col = "red")
-text(mu2, 0.10, "Media X2", pos = 1, col = "green")
+text(mu1, 0.20, "Media X1", pos = 1, col = "#FFB6C1", cex = 0.75)
+text(mu2, 0.10, "Media X2", pos = 1, col = "#98FB98", cex = 0.75)
 
 # Gráfico de la distribución en valor absoluto de Z y las medias de X1 y X2
-plot(x_values, abs(fZ(x_values)), type = "l", col = "blue", lwd = 2, xlab = "Z", 
+plot(x_values, abs(fZ(x_values)), type = "l", col = "#ADD8E6", lwd = 2, xlab = "Z", 
      ylab = "Densidad (Valor Absoluto)", main = "Distribución de Z = X1 - X2")
 
-abline(v = c(mu1, mu2), col = c("red", "green"), lty = c(2, 2), lwd = 2)
+abline(v = c(mu1, mu2), col = c("#FFB6C1", "#98FB98"), lty = c(2, 2), lwd = 2)
 
-text(mu1, 0.20, "Media X1", pos = 1, col = "red")
-text(mu2, 0.10, "Media X2", pos = 1, col = "green")
+text(mu1, 0.20, "Media X1", pos = 1, col = "#FFB6C1", cex = 0.75)
+text(mu2, 0.10, "Media X2", pos = 1, col = "#98FB98", cex = 0.75)
 
 #-------------------------------------------------------------------------------
 fpK <- function(x,y){ 
@@ -96,14 +111,14 @@ mcmc <- MCMC[(L+1):N,"x"]
 
 hist(mcmc, freq=FALSE, main="Distribución de muestra MCMC", xlab="x", 
      ylab="distribucion(x)", breaks=200) 
-abline(v=mu1,col='blue',lwd=3) 
-abline(v=mu2,col='red',lwd=3)
+abline(v=mu1,col="#FFB6C1",lwd=3) 
+abline(v=mu2,col="#98FB98",lwd=3)
 
 hist(abs(mcmc), freq = FALSE, 
      main = "Distribución de muestra MCMC (Valor Absoluto)", 
      xlab = "x", ylab = "distribucion(x)", breaks = 200)
-abline(v=mu1,col='blue',lwd=3) 
-abline(v=mu2,col='red',lwd=3)
+abline(v=mu1,col="#FFB6C1",lwd=3) 
+abline(v=mu2,col="#98FB98",lwd=3)
 
 #c.Estime la media de la distribución resultante de 𝑍.
 media <- mean(mcmc)
@@ -115,9 +130,9 @@ options(scipen = 999)
 par(mfrow = c(1, 1))
 
 plot(mcmc,type="l",xlab="x",ylab ="y",main="Traceplot de muestra MCMC")
-abline(h=mu1,col='blue',lwd=3) 
-abline(h=mu2,col='red',lwd=3) 
-abline(h=media,col='violet',lwd=3)
+abline(h=mu1,col="#FFB6C1",lwd=3) 
+abline(h=mu2,col="#98FB98",lwd=3) 
+abline(h=media,col="#FFA07A",lwd=3)
 
 #e. El gráfico de Autocorrelación de la muestra MCMC del algoritmo.
 acf(mcmc,main="Autocorrelación de muestra MCMC")
@@ -125,7 +140,7 @@ acf(mcmc,main="Autocorrelación de muestra MCMC")
 #f. El gráfico de la convergencia de la media de la muestra MCMC del algoritmo.
 m <- N-L 
 acumulado <- cumsum(mcmc)/(1:m) 
-plot(1:m,acumulado,col="blue",type="l",ylab="promedio",xlab="Iteraciones", 
+plot(1:m,acumulado,col="#ADD8E6",type="l",ylab="promedio",xlab="Iteraciones", 
      main="Convergencia de la media de la muestra MCMC")
 
 #g. La tasa de aceptación del algoritmo.
