@@ -47,10 +47,10 @@ recalentamiento_simulado <- function(f,alpha=0.5,s0=0,niter,mini=-Inf,maxi=Inf){
 Resultado <- recalentamiento_simulado(fx,0.1,1.5,1000,-2,2) 
 Resultado$r
 
-curve(fx,col="violet",lwd=2,from=-2,to = 2,n=1000,ylab="f(x)")
+curve(fx,col="#FFB6C1",lwd=2,from=-2,to = 2,n=1000,ylab="f(x)")
 title("Gráfico y mínimo global de la función")
-abline(v=Resultado$r,col="green")
-text(Resultado$r, 0, "Mínimo", pos = 1, col = "green")
+abline(v=Resultado$r,col="#98FB98")
+text(Resultado$r, 0, "Mínimo", pos = 1, col = "#98FB98")
 
 #b.Grafique el resultado de los estados donde estuvo la cadena de la estimación 
 #del punto a.
