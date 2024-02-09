@@ -1,2 +1,2 @@
-Tarea 2 estadística
-Ojalá saquemos 100
+# Tarea 2 estadística
+## Ojalá saquemos 100
