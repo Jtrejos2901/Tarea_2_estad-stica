@@ -15,13 +15,54 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-Primeramente, se cargan las librerías necesarias.
-
-```{r, message=FALSE}
+Primeramente, se cargan las librerías necesarias y se fija la semilla para reproducibilidad de los resultados.
+```{r, warning=FALSE, message=FALSE}
 library(tidyverse)
 library(readxl)
+
+set.seed(2901)
 ```
 
+# Ejercicio 1
+**Usando un Algoritmo de Integración por Montecarlo estime ln(2) con un error absoluto de 10−3.**
+
+Inicialmente se define la función a integrar por le método de montecarlo. Dado
+que se busca el valor aproximado de ln(2) y sabiendo que la integral de 1/x =
+ln(|x|) + c, entonces se define la función a integrar como:
+
+```{r warning=FALSE}
+funcion_a_integrar <- Vectorize(function(x) 1/x)
+```
+
+Como la integral de 1 a 2 de 1/x es ln(2), entonces se genera una muestra 
+aleatoria con distribución uniforme en el intervalo de interés.
+```{r warning=FALSE}
+muestra <- runif(10^6, min = 1, max = 2)
+
+
+curve(funcion_a_integrar, 1, 2, col = "blue", lwd = 1,
+      main = "Grafico de f(x) para x en [1,2]")
+grid()
+```
+
+Se procede a evaluar los valores generados en la función.
+```{r warning=FALSE}
+muestra_evaluada <- funcion_a_integrar(muestra)
+```
+
+Con la muestra evaluada, se toma la esperanza para obtener el valor estimado 
+de ln(2) y  se calcula el valor real.
+```{r warning=FALSE}
+ln_2_estimado <- mean(muestra_evaluada)
+ln_2_real <- log(2)
+```
+
+Se muestran los resultados:
+```{r warning=FALSE}
+{cat("Estimación: ", ln_2_estimado, "\n")
+ cat("Valor real: ", ln_2_real, "\n")
+ cat("Error absoluto: ", abs(ln_2_estimado - ln_2_real))}
+```
 
 # Ejercicio 2
 
@@ -79,6 +120,123 @@ El error absoluto de la estimación es:
 
 ```{r, warning=FALSE}
 error_absoluto <- abs(valor_estimado-valor_real)
+print(error_absoluto)
+```
+
+# Ejercicio 3
+**Usando el Algoritmo de Aceptación-Rechazo para aproximar el valor de alpha, de una distribución gamma de parámetros alpha, 1. Dada una muestra de 100 observaciones (ver valor de x en “Muestragamma.csv”. Utilice como función auxiliar una distribución exponencial con parámetro 0.2.**
+
+Se procede a leer la muestra suministrada y a guardarla. Además se crea la función de verosimilitud,
+```{r warning=FALSE}
+BD <- read.csv("muestraGamma.csv")
+X_i <- BD$x
+
+f_verosimilitud <- Vectorize(function(a) prod(dgamma(X_i, a, 1)))
+```
+
+## Indique el valor estimado de alpha.
+
+Se maximiza la función de verosimilitud con el objetivo de encontrar el valor
+de alpha que maximiza la función de verosimilitud y así tomarlo como estimador.
+
+```{r warning=FALSE}
+maximizacion <- optimize(f = f_verosimilitud, int = range(X_i), maximum = TRUE)
+a_estimado <- maximizacion$maximum
+
+# Se muestra el valor estimado de alpha.
+cat("Estimación de alpha: ", a_estimado)
+```
+
+## Indique el número de generaciones, número medio de generaciones y proporción de rechazos de la estimación realizada. 
+
+Se define el valor c como el máximo que alcanza fa función de verosimilitud.
+```{r warning=FALSE}
+c <- maximizacion$objective
+```
+
+Se define la función de cuasi densidad a partir de la distribución auxiliar y
+de la verosimilitud.
+```{r warning=FALSE}
+f_cuasi <- function(a) f_verosimilitud(a)*dexp(a, 0.2)
+
+# Gráfico ilustrativo.
+curve(c * dexp(x, 0.2), xlim = c(0, 8), ylim = c(0, c/pi), lty = 2,
+      xlab = "alpha", ylab = "cuasi-densidad")
+curve(f_cuasi, add = TRUE)
+```
+
+Se genera la muestra aleatoria uniforme que serán utilizada en el algoritmo de
+aceptación-rechazo a partir de un número determinado de simulaciones.
+```{r warning=FALSE}
+n_sim <- 10^4
+n_gen <- n_sim
+U <- runif(n_sim)
+```
+
+Se genera la muestra de la distribución auxiliar exponencial con parámetro 
+lambda = 0,2 y se evalua en la función de verosimilitud.
+```{r warning=FALSE}
+muestra_exp <- rexp(n_sim, 0.2)
+muestra_exp_evaluada <- f_verosimilitud(muestra_exp)
+```
+
+
+Ahora se ejecuta el algoritmo de acptación-rechazo.
+```{r warning=FALSE}
+for(i in 1:10^4){
+  while((U[i]*c) > muestra_exp_evaluada[i]){
+    U[i]=runif(1)
+    muestra_exp[i]=rexp(1, 0.2)
+    muestra_exp_evaluada[i]<-f_verosimilitud(muestra_exp[i])
+    n_gen=n_gen+1}
+}
+```
+
+Una vez ejecutado el algoritmo se muestra el número de generaciones, número medio de generaciones y proporción de rechazos de la estimación realizada.
+```{r warning=FALSE}
+{cat("Número de generaciones = ", n_gen)
+  cat("\nNúmero medio de aceptados = ", n_gen/n_sim)
+  cat("\nProporción de rechazos = ", 1-n_sim/n_gen, "\n")}
+```
+
+## Determine un intervalo de credibilidad al 99% para el parámetro alpha estimado. 
+
+Se calcula el valor de ajuste dada la implementación de la función de cuasi
+densidad y se ajusta la función de cuasi densidad.
+```{r warning=FALSE}
+v_ajuste <- c*n_sim/n_gen
+f_cuasi_ajustada <- function(rex) f_cuasi(rex)/v_ajuste
+```
+
+Se procede a determinar e imprimir el intervalo de credibilidad al 99% para el 
+parámetro alpha estimado.  
+```{r warning=FALSE}
+IC <- quantile(muestra_exp, c(0.01, 0.99))
+print(IC)
+```
+
+Se genera un gráfico de lo anterior, haciendo uso de la función de cuasi 
+densidad ajustada.
+```{r warning=FALSE}
+hist(muestra_exp, freq = FALSE, main = "")
+abline(v = mean(muestra_exp), lty = 2, lwd = 2) 
+abline(v = IC, lty = 2)
+curve(f_cuasi_ajustada, col = "blue", add = TRUE)
+```
+
+## Aceptaría o rechazaría la hipótesis que alpha = 3, basados en el 
+intervalo de credibilidad. 
+
+Finalmente, dado lo que se muestra en el gráfico anterior y haciendo uso del 
+intervalo de confianza al 99%, se puede aceptar la hipótesis de alpha = 3, 
+pues no solo se encuentra en el intervalo de confianza, sino que también es un
+valor muy cercano a la media de las estimaciones y a la misma estimación hecha 
+anteriormente. Para mostrar esto, observe que:
+```{r warning=FALSE}
+{cat("Diferencia absoluta entre alpha = 3 y estimación: ", 
+     abs(3 - a_estimado), "\n")
+ cat("Diferencia absoluta entre alpha = 3 y media: ", 
+     abs(3 - mean(muestra_exp)))}
 ```
 
 # Ejercicio 4
@@ -149,7 +307,7 @@ abline(v=Resultado$r,col="#98FB98")
 text(Resultado$r, 0, "Mínimo", pos = 1, col = "#98FB98")
 ```
 
-##b.Grafique el resultado de los estados donde estuvo la cadena de la estimación del punto a.
+## b.Grafique el resultado de los estados donde estuvo la cadena de la estimación del punto a.
 
 ```{r}
 plot(Resultado$e, xlab = "Iteraciones", ylab = "Valor (x)", 
@@ -314,43 +472,3 @@ ggplot(data = resultado_determinista, aes(x = Años.pago, y = Pago)) +
 ```
 
 Como se puede observar, los pagos esperados mediante el método determinista y el MCMC muestran distribuciones muy similares. Por tanto, se verifica que el resultado que se obtuvo por el método MCMC es aceptable.
-
-
-
-
-
-
-<<<<<<< HEAD
-```{r}
-options(scipen = 999)
-
-plot(mcmc,type="l",xlab="x",ylab ="y",main="Traceplot de muestra MCMC")
-abline(h=mu1,col="#FFB6C1",lwd=3) 
-abline(h=mu2,col="#98FB98",lwd=3) 
-abline(h=media,col="#FFA07A",lwd=3)
-```
-
-## e.El gráfico de Autocorrelación de la muestra MCMC del algoritmo.
-
-```{r}
-acf(mcmc,main="Autocorrelación de muestra MCMC")
-```
-
-## f.El gráfico de la convergencia de la media de la muestra MCMC del algoritmo.
-
-```{r}
-m <- N-L 
-acumulado <- cumsum(mcmc)/(1:m) 
-plot(1:m,acumulado,col="#ADD8E6",type="l",ylab="promedio",xlab="Iteraciones", 
-     main="Convergencia de la media de la muestra MCMC")
-```
-
-## g.La tasa de aceptación del algoritmo.
-La tasa de aceptación es de un 60.097$\%$
-```{r}
-cat("Tasa de aceptación:", mean(MCMC[,"Salto"]),"\n")
-```
-
-También este ejercicio se puede replantear como que Z al ser una resta de normales también es una normal con media $\mu_1 - \mu_2$ y varianza $\sigma_1 + \sigma_2$. Por lo tanto, se puede ejcutar el código anterior pero definiendo la función a muestrar como una normal con los parámetros indicados. 
-=======
->>>>>>> 5a03c4da716d9301563552525d24207e08cdfafa
