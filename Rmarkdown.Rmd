@@ -444,7 +444,6 @@ media
 
 ```{r}
 options(scipen = 999)
-par(mfrow = c(1, 1))
 
 plot(mcmc,type="l",xlab="x",ylab ="y",main="Traceplot de muestra MCMC")
 abline(h=mu1,col="#FFB6C1",lwd=3) 
@@ -473,18 +472,4 @@ La tasa de aceptación es de un 60.097$\%$
 cat("Tasa de aceptación:", mean(MCMC[,"Salto"]),"\n")
 ```
 
-También este ejercicio se puede replantear como que Z al ser uan resta de normales también es una normal con media $\mu_1 - \mu_2$ y varianza $\sigma_1 + \sigma_2$. Por lo tanto, se puede ejcutar el código anterior pero definiendo la función a muestrar como una normal con los parámetros indicados. 
-
-```{r, eval=FALSE}
-fnormal <- function(x,mu1,mu2,sigma1, sigma2) { 
-  fx <- dnorm(x, mean = mu1-mu2, sd = sigma1+sigma2)
-  return(fx) 
-}
-
-mu1 <- 4
-mu2 <- 2
-sigma1 <- 4
-sigma2 <- 1
-
-fZ <- function(x){return(fnormal(x,mu1,mu2,sigma1,sigma2))} 
-```
+También este ejercicio se puede replantear como que Z al ser una resta de normales también es una normal con media $\mu_1 - \mu_2$ y varianza $\sigma_1 + \sigma_2$. Por lo tanto, se puede ejcutar el código anterior pero definiendo la función a muestrar como una normal con los parámetros indicados. 
