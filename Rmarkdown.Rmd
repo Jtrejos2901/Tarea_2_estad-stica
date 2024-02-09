@@ -29,7 +29,7 @@ library(readxl)
 
 ## a. P(X\<-5)
 
-Primeramenre, mediante el metódo de integración por Montecarlo se obtiene el siguiente resultado:
+Inicialmente se analiza mediante el método de integración por Montecarlo, con el cual se obtiene el siguiente resultado:
 
 ```{r, warning=FALSE}
 
@@ -46,7 +46,8 @@ valor_estimado_1 <- mean(f)
 
 valor_real <- pnorm(-5, 0.5, sqrt(0.5))
 
-comparacion <- data.frame("Estimación" = valor_estimado_1, "Valor real" = valor_real)
+comparacion <- data.frame("Estimación" = valor_estimado_1, 
+                          "Valor real" = valor_real)
 
 print(comparacion)
 ```
@@ -83,6 +84,7 @@ error_absoluto <- abs(valor_estimado-valor_real)
 # Ejercicio 4
 
 **Sea $f(x) = sen\left(x + \frac{cos(10x)}{3}\right)$ para $x\in[-2,2]$**
+
 ## a.Utilizando el algoritmo de recalentamiento simulado estime el mínimo global en [−2,2], con valor inicial en 1.5.
 
 Primero definimos la función en R y la graficamos para darnos una idea de dónde puede estar ubicado el mínimo global de la función en el intervalo. 
@@ -147,7 +149,7 @@ abline(v=Resultado$r,col="#98FB98")
 text(Resultado$r, 0, "Mínimo", pos = 1, col = "#98FB98")
 ```
 
-## b.Grafique el resultado de los estados donde estuvo la cadena de la estimación del punto a.**
+##b.Grafique el resultado de los estados donde estuvo la cadena de la estimación del punto a.
 
 ```{r}
 plot(Resultado$e, xlab = "Iteraciones", ylab = "Valor (x)", 
@@ -176,7 +178,8 @@ tabla_vida <- read_excel("tavid2000-2150.xls",
 #Se filtra la base de datos para obtener los datos de un hombre nacido en 1994 
 #con edades mayor o igual a 30
 
-datos <- subset(tabla_vida, sex == 1 & ynac == 1994 & edad >=30, select = c(edad,qx, year))
+datos <- subset(tabla_vida, sex == 1 & ynac == 1994 & edad >=30, 
+                select = c(edad,qx, year))
 
 ```
 
@@ -224,12 +227,12 @@ for (i in 1:iteraciones) {
   
   #Asignar los pagos correspondientes al año de fallecimiento
   if (año_fallecimiento < 30) {
-    pago[año_fallecimiento + 1] <- pago[año_fallecimiento + 1] + suma_asegurada_2 
+    pago[año_fallecimiento + 1] <- pago[año_fallecimiento + 1]+suma_asegurada_2 
   } else if (año_fallecimiento ==30) {
     pago[31] <- pago[31]+ suma_asegurada_1
   }else {
     pago[31] <- pago[31] + suma_asegurada_1 
-    pago[año_fallecimiento + 1] <- pago[año_fallecimiento + 1] + suma_asegurada_1
+    pago[año_fallecimiento + 1] <- pago[año_fallecimiento + 1]+suma_asegurada_1
   }
 }
 
@@ -242,7 +245,8 @@ El histograma de los pagos esperados por año es el siguiente:
 ```{r, warning=FALSE}
 ggplot(data = resultado, aes(x = Años.pago, y = Pago)) +  
   geom_bar(stat = "identity", fill = "blue") +  
-  labs(title = "Histograma de Pagos Esperados por año", x = "Años", y = "Frecuencia")+
+  labs(title = "Histograma de Pagos Esperados por año", x = "Años", 
+       y = "Frecuencia")+
   theme_minimal()
 ```
 
@@ -257,7 +261,7 @@ obtenido mediante un método determinista como el que se muestra a continuación
 
 qx<- datos$qx
 
-#Se crea una función que obtiene n_p_30 (probabilidad de sobrevivencia acumulada)
+#Se crea una función que obtiene n_p_30(probabilidad de sobrevivencia acumulada)
 n_p_30 <- c(0)
 
 n_p_30_function <- function(px) {
@@ -298,150 +302,25 @@ for (i in 1: (length(px)-30)) {
   pago_esperado[30+i] <- suma_asegurada_1*n_p_30[30+i-1]*qx[30+i]
 }
 
-resultado_determinista <- data.frame("Años pago"= datos$year, "Pago" = pago_esperado)
+resultado_determinista <- data.frame("Años pago"= datos$year,
+                                     "Pago" = pago_esperado)
  
 ggplot(data = resultado_determinista, aes(x = Años.pago, y = Pago)) +  
   geom_bar(stat = "identity", fill = "blue") +  
-  labs(title = "Histograma de Pagos Esperados por año", x = "Años", y = "Frecuencia")+
+  labs(title = "Histograma de Pagos Esperados por año", x = "Años",
+       y = "Frecuencia")+
   theme_minimal()
 
 ```
 
 Como se puede observar, los pagos esperados mediante el método determinista y el MCMC muestran distribuciones muy similares. Por tanto, se verifica que el resultado que se obtuvo por el método MCMC es aceptable.
 
-# Ejercicio 6
-
-**Usando el Algoritmo de Metropolis-Hastings construya una muestra de $𝑍=𝑋1−𝑋2$ donde $𝑋1~𝑁(𝜇,𝜎^2)$ y $𝑋2~𝑁(𝜇/2,𝜎^2/4)$, considere para este ejercicio $𝜇=𝜎^2=4$.**
-
-## a.Gráfique la distribución de Z junto con las medias de X1,X2.
-
-Primero se realiza la función de Z. Para ello se hace la resta de los núcleos de las distribuciones de X1 y X2.  
-```{r}
-fnormal <- function(x,mu1,mu2,sigma1, sigma2) { 
-  fx <- exp(-((x-mu1)^2/(2*(sigma1)))) - exp(-((x-mu2)^2/(2*(sigma2)))) 
-  return(fx) 
-}
-
-mu1 <- 4
-mu2 <- 2
-sigma1 <- 4
-sigma2 <- 1
-
-fZ <- function(x){return(fnormal(x,mu1,mu2,sigma1,sigma2))}
-```
-
-Ahora se realiza el gráfico de la distribución de Z. 
-
-```{r}
-# Valores para el rango de la gráfica
-x_values <- seq(0, 16, length.out = 1000)
-
-par(mfrow = c(1, 2))
-
-# Gráfico de la distribución de Z y las medias de X1 y X2
-plot(x_values, fZ(x_values), type = "l", col = "#ADD8E6", lwd = 2, 
-     xlab = "Z", ylab = "Densidad", main = "Distribución de Z = X1 - X2")
-
-# Líneas verticales para las medias de X1 y X2
-abline(v = c(mu1, mu2), col = c("#FFB6C1", "#98FB98"), lty = c(2, 2), lwd = 2)
-
-# Etiquetas para las medias
-text(mu1, 0.20, "Media X1", pos = 1, col = "#FFB6C1", cex = 0.75)
-text(mu2, 0.10, "Media X2", pos = 1, col = "#98FB98", cex = 0.75)
-
-# Gráfico de la distribución en valor absoluto de Z y las medias de X1 y X2
-plot(x_values, abs(fZ(x_values)), type = "l", col = "#ADD8E6", lwd = 2, xlab = "Z", 
-     ylab = "Densidad (Valor Absoluto)", main = "Distribución de Z = X1 - X2")
-
-abline(v = c(mu1, mu2), col = c("#FFB6C1", "#98FB98"), lty = c(2, 2), lwd = 2)
-
-text(mu1, 0.20, "Media X1", pos = 1, col = "#FFB6C1", cex = 0.75)
-text(mu2, 0.10, "Media X2", pos = 1, col = "#98FB98", cex = 0.75)
-```
-
-## b.Gráfique la distribución (histograma) de la muestra MCMC del algoritmo junto con las medias de X1,X2
-
-Antes de graficar el histograma se debe crear y ejecutar la función encargada del algoritmo MCMC. 
-
-```{r}
-fpK <- function(x,y){ 
-  pK <- dcauchy(y,location = x) #x es elcentro del pico de la distribución. 
-  return(pK) 
-} 
-
-N <- 10^5 #Número de Iteraciones 
-L <- 1000 #periodo quemado (burnin) 
-MCMC <- matrix(data=0,nrow=N,ncol=12) 
-colnames(MCMC) <- c("x","y","PIx","PIy","Kxy","Kyx","Rxy","Ryx","Mxy","Myx","Fxy",
-                  "Salto") 
-#1.Iniciar con un valor arbitrario de x del dominio de distribución 
-x <- runif(1,-50,50)
-for(i in 1:N){ 
-  #2.Generamos la propuesta con una distribucion arbitraria 
-  y <- rcauchy(1,location=x) #Valor aleatorio según X 
-  
-  #3.Tasa de Aceptación 
-  PIx <- fZ(x) 
-  PIy <- fZ(y) 
-  Kxy <- fpK(x,y) 
-  Kyx <- fpK(y,x) 
-  Rxy <- (PIy*Kyx) / (PIx*Kxy) 
-  Ryx <- (PIx*Kxy) / (PIy*Kyx) 
-  
-  #Matriz estocástica de los estados de la distribución estacionaria 
-  if(x!=y){ 
-    Mxy <- Kxy*min(1,Rxy) 
-    Myx <- Kyx*min(1,Ryx) 
-  } else {
-    Mxy <- -1 
-    Myx <- -1 
-  } 
-  
-  #4.Criterio de Aceptacion o Rechazo 
-  #Probabilidad de aceptación, runif(1) 
-  Fxy <- runif(1) 
-  MCMC[i,] <- c(x,y,PIx,PIy,Kxy,Kyx,Rxy,Ryx,Mxy,Myx,Fxy,0) 
-  
-  if(Fxy < Rxy) { 
-    x <- y 
-    lsalto <- 1 
-  } else {
-    lsalto <- 0 
-  }
-  
-  MCMC[i,12]  <- lsalto
-  
-} 
-
-mcmc <- MCMC[(L+1):N,"x"]
-```
-
-```{r}
-hist(mcmc, freq=FALSE, main="Distribución de muestra MCMC", xlab="x", 
-     ylab="distribucion(x)", breaks=200) 
-abline(v=mu1,col="#FFB6C1",lwd=3) 
-abline(v=mu2,col="#98FB98",lwd=3)
-```
-
-```{r}
-hist(abs(mcmc), freq = FALSE, 
-     main = "Distribución de muestra MCMC (Valor Absoluto)", 
-     xlab = "x", ylab = "distribucion(x)", breaks = 200)
-abline(v=mu1,col="#FFB6C1",lwd=3) 
-abline(v=mu2,col="#98FB98",lwd=3)
-```
 
 
-## c.Estime la media de la distribución resultante de Z.
 
-La media resultante de Z es de 5.064882 
-```{r}
-media <- mean(mcmc)
-media
-```
 
-## d.Gráfique el Traceplot de muestra MCMC del algoritmo junto con las medias de X1,X2,Z.
 
+<<<<<<< HEAD
 ```{r}
 options(scipen = 999)
 
@@ -473,3 +352,5 @@ cat("Tasa de aceptación:", mean(MCMC[,"Salto"]),"\n")
 ```
 
 También este ejercicio se puede replantear como que Z al ser una resta de normales también es una normal con media $\mu_1 - \mu_2$ y varianza $\sigma_1 + \sigma_2$. Por lo tanto, se puede ejcutar el código anterior pero definiendo la función a muestrar como una normal con los parámetros indicados. 
+=======
+>>>>>>> 5a03c4da716d9301563552525d24207e08cdfafa
